@@ -13,7 +13,8 @@ const { Pool } = require('pg');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.PRIVACTIC_SSL
-})
+});
+const PORT = process.env.PORT || 3000;
 
 // configure passport.js to use the local strategy
 passport.use(new LocalStrategy(
@@ -137,6 +138,6 @@ app.get('/app', (req, res) => {
 });
 
 // tell the server what port to listen on
-app.listen(3000, () => {
-  console.log('Listening on localhost:3000');
+app.listen(PORT, () => {
+  console.log(`Listening on ${ PORT }`);
 });
