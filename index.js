@@ -1,4 +1,8 @@
 // npm modules
+var fs = require('fs');
+var gfs = require('graceful-fs');
+gfs.gracefulify(fs);
+
 const path = require('path');
 const express = require('express');
 const ejs = require('ejs');
@@ -82,6 +86,30 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
+app.get('/bootstrap-css', (req, res) => {
+  res.sendFile(path.join(__dirname + '/node_modules/bootstrap/dist/css/bootstrap.min.css'));
+});
+
+app.get('/jquery', (req, res) => {
+  res.sendFile(path.join(__dirname + '/node_modules/jquery/dist/jquery.min.js'));
+});
+
+app.get('/popper', (req, res) => {
+  res.sendFile(path.join(__dirname + '/node_modules/popper.js/dist/popper.min.js'));
+});
+
+app.get('/popper.min.js.map', (req, res) => {
+  res.sendFile(path.join(__dirname + '/node_modules/popper.js/dist/popper.min.js.map'));
+});
+
+app.get('/bootstrap-js', (req, res) => {
+  res.sendFile(path.join(__dirname + '/node_modules/bootstrap/dist/js/bootstrap.min.js'));
+});
+
+app.get('/bootstrap.min.js.map', (req, res) => {
+  res.sendFile(path.join(__dirname + '/node_modules/bootstrap/dist/js/bootstrap.min.js.map'));
+});
+
 app.get('/db', async (req, res) => {
   try {
     const client = await pool.connect()
@@ -107,7 +135,7 @@ app.post('/signup', async (req, res) => {
     res.redirect('/login');
     client.release();
   } catch (err) {
-    console.err(err);
+    console.error(err);
     res.send("Error " + err);
   }
 });
