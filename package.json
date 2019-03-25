@@ -1,12 +1,13 @@
 {
   "name": "privactic",
   "version": "1.0.0",
-  "description": "",
+  "description": "Encrypted instant messaging",
+  "repository": "https://github.com/BradyKoehler/privactic",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev:server": "nodemon --ignore sessions/ server.js"
+    "dev:server": "nodemon --ignore sessions/ index.js"
   },
   "keywords": [],
   "author": "",
@@ -14,12 +15,17 @@
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.18.3",
+    "bootstrap": "^4.3.1",
     "ejs": "^2.6.1",
     "express": "^4.16.4",
     "express-session": "^1.15.6",
+    "graceful-fs": "^4.1.15",
+    "jquery": "^3.3.1",
+    "morgan": "^1.9.1",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "pg": "^7.9.0",
+    "popper.js": "^1.14.7",
     "session-file-store": "^1.2.0",
     "uuid": "^3.3.2"
   },
