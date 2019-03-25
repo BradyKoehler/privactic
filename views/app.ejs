@@ -62,5 +62,18 @@
   </div>
 
   <script type="text/javascript" src="/scripts/app.js"></script>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io.connect('http://localhost:3131');
+    socket.on('message', function(data) {
+      // { id: 27, conversation_id: 1, user_id: 1, content: "test 024" }
+
+      if ($("div#app-conversation").data("id") == data.conversation_id) {
+        $("div#app-conversation-content").append(`<div class="message you"><p>${data.content}</p></div>`);
+        $("#app-conversation-content").animate({ scrollTop: $("#app-conversation-content").height() }, "fast");
+      }
+    });
+  </script>
 </body>
 </html>

@@ -5,6 +5,7 @@ gfs.gracefulify(fs);
 
 const path = require('path');
 const express = require('express');
+var socketIO = require('socket.io');
 var morgan = require('morgan');
 const ejs = require('ejs');
 const uuid = require('uuid/v4');
@@ -75,7 +76,7 @@ const app = express()
 // add & configure middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(session({
+const sessionMiddleware = session({
   genid: (req) => {
     return uuid() // use UUIDs for session IDs
   },
@@ -83,7 +84,8 @@ app.use(session({
   secret: 'monitor dog', // TODO replace with env variable
   resave: false,
   saveUninitialized: true
-}));
+});
+app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -114,6 +116,10 @@ app.get('/bootstrap-js', (req, res) => {
 
 app.get('/bootstrap.min.js.map', (req, res) => {
   res.sendFile(path.join(__dirname + '/node_modules/bootstrap/dist/js/bootstrap.min.js.map'));
+});
+
+app.get('/socket.io.js', (req, res) => {
+  res.sendFile(path.join(__dirname + '/node_modules/socket.io-client/dist/socket.io.js'));
 });
 
 app.get('/db', async (req, res) => {
@@ -233,6 +239,13 @@ app.post('/messages', async (req, res) => {
     const message = (result) ? result.rows[0] : null;
     res.json(message);
     client.release();
+    const id_res = await client.query(`SELECT socket_id FROM users WHERE id = (
+      SELECT
+      CASE WHEN first_id = ${req.user.id} THEN second_id ELSE first_id END as id
+      FROM conversations WHERE id = ${req.body.conversation_id} LIMIT 1
+    ) LIMIT 1`);
+    const socket_id = (id_res) ? id_res.rows[0].socket_id : null;
+    io.to(`${socket_id}`).emit("message", message);
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
@@ -240,6 +253,42 @@ app.post('/messages', async (req, res) => {
 });
 
 // tell the server what port to listen on
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Listening on ${ PORT }`);
 });
+
+/* SOCKET>.IO */
+
+var io = socketIO(server)
+  .use(function(socket, next) {
+    // Wrap the express middleware
+    sessionMiddleware(socket.request, {}, next);
+  })
+  .on("connection", async function(socket){
+    // var userId = socket.request.session.passport.user;
+    // console.log("Your User ID is", userId);
+    // console.log(socket.request.sessionID);
+    // console.log(socket.id);
+    try {
+      const client = await pool.connect();
+      const result = await client.query(`UPDATE users SET socket_id = '${socket.id}' WHERE id = ${socket.request.session.passport.user}`);
+    } catch (err) {
+      console.error(err);
+    }
+
+    socket.on('disconnect', async function () {
+      try {
+        const client = await pool.connect();
+        const result = await client.query(`UPDATE users SET socket_id = '' WHERE id = ${socket.request.session.passport.user}`);
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  });
+
+// io.on('connection', (socket) => {
+//   console.log('Client connected');
+//   socket.on('disconnect', () => console.log('Client disconnected'));
+// });
+
+// setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
