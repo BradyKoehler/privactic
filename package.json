@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev:server": "nodemon --ignore sessions/ server.js"
+    "dev:server": "nodemon --ignore sessions/ index.js"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,7 @@
     "express-session": "^1.15.6",
     "graceful-fs": "^4.1.15",
     "jquery": "^3.3.1",
+    "morgan": "^1.9.1",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "pg": "^7.9.0",

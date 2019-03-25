@@ -1,0 +1,55 @@
+body {
+  background-color: #eee;
+  padding: 5rem 0 0 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+div#app-sidebar {
+  border-right: solid lightgrey 1px;
+}
+
+div#app-main {
+  overflow-x: hidden;
+}
+
+div#app-conversation {
+  height: 85% !important;
+}
+
+div#app-conversation-header {
+  background-color: white;
+  padding: 1rem;
+  box-shadow: 0 3px 5px #aaa;
+  height: 10%;
+  margin: 0 -15px;
+}
+
+div#app-conversation-content {
+  height: 90%;
+  padding: 1rem;
+  overflow-y: scroll;
+}
+
+div#app-conversation-content div.message {
+  width: 80%;
+  background-color: #fefefe;
+  border-radius: 4px;
+  padding: 5px;
+  margin-bottom: 1%;
+}
+
+div#app-conversation-content div.message.me {
+  margin-left: 20%;
+}
+
+div#app-conversation-content div.message p {
+  padding: 0;
+  margin: 0;
+}
+
+div#app-input {
+  height: 13% !important;
+  border-top: solid lightgrey 1px;
+  padding-top: 1rem;
+}
