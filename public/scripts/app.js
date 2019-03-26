@@ -25,6 +25,20 @@ function conversationsLoad() {
   });
 }
 
+var messages = $("div#app-conversation-content");
+function addMessage(msg, me = false) {
+  messages.append(`<div class="message ${msg.me || me ? 'me' : 'you'}"><p>${msg.content}</p></div>`);
+  $("#app-conversation-content").scrollTop($("#app-conversation-content").prop("scrollHeight"));
+}
+
+const SOCKET_IO_URL = $("meta[name=socket_io_url]").attr("content");
+var socket = io.connect(SOCKET_IO_URL);
+socket.on('message', function(data) {
+  if ($("div#app-conversation").data("id") == data.conversation_id) {
+    addMessage(data);
+  }
+});
+
 $(function() {
   conversationsLoad();
 
@@ -36,9 +50,8 @@ $(function() {
       var box = $("div#app-conversation-content");
       box.html("");
       for (var i = 0; i < data.length; i++) {
-        box.append(`<div class="message ${data[i].me ? 'me' : 'you'}"><p>${data[i].content}</p></div>`);
+        addMessage(data[i]);
       }
-      $("#app-conversation-content").animate({ scrollTop: $("#app-conversation-content").height() }, "fast");
     });
   });
 
@@ -50,8 +63,7 @@ $(function() {
       content: textarea.val()
     }, function(data) {
       textarea.val("");
-      $("div#app-conversation-content").append(`<div class="message me"><p>${data.content}</p></div>`);
-      $("#app-conversation-content").animate({ scrollTop: $("#app-conversation-content").height() }, "fast");
+      addMessage(data, true);
     });
   });
 });

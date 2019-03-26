@@ -81,7 +81,7 @@ const sessionMiddleware = session({
     return uuid() // use UUIDs for session IDs
   },
   store: new FileStore(),
-  secret: 'monitor dog', // TODO replace with env variable
+  secret: process.env.PRIVACTIC_SESSION_SECRET,
   resave: false,
   saveUninitialized: true
 });
@@ -172,7 +172,7 @@ app.post('/login', (req, res, next) => {
 
 app.get('/app', (req, res) => {
   if(req.isAuthenticated()) {
-    res.render('app');
+    res.render('app', { SOCKET_URL: process.env.PRIVACTIC_SOCKET_IO_URL });
   } else {
     res.redirect('/')
   }
@@ -259,36 +259,26 @@ const server = app.listen(PORT, () => {
 
 /* SOCKET>.IO */
 
-var io = socketIO(server)
-  .use(function(socket, next) {
-    // Wrap the express middleware
-    sessionMiddleware(socket.request, {}, next);
-  })
-  .on("connection", async function(socket){
-    // var userId = socket.request.session.passport.user;
-    // console.log("Your User ID is", userId);
-    // console.log(socket.request.sessionID);
-    // console.log(socket.id);
+var io = socketIO(server);
+
+io.use(function(socket, next) { sessionMiddleware(socket.request, {}, next) });
+
+io.on("connection", async function(socket){
+  var user_id = socket.request.session.passport.user;
+  console.log("Your User ID is", user_id);
+  try {
+    const client = await pool.connect();
+    const result = await client.query(`UPDATE users SET socket_id = '${socket.id}' WHERE id = ${user_id}`);
+  } catch (err) {
+    console.error(err);
+  }
+
+  socket.on('disconnect', async function () {
     try {
       const client = await pool.connect();
-      const result = await client.query(`UPDATE users SET socket_id = '${socket.id}' WHERE id = ${socket.request.session.passport.user}`);
+      const result = await client.query(`UPDATE users SET socket_id = '' WHERE id = ${user_id}`);
     } catch (err) {
       console.error(err);
     }
-
-    socket.on('disconnect', async function () {
-      try {
-        const client = await pool.connect();
-        const result = await client.query(`UPDATE users SET socket_id = '' WHERE id = ${socket.request.session.passport.user}`);
-      } catch (err) {
-        console.error(err);
-      }
-    });
   });
-
-// io.on('connection', (socket) => {
-//   console.log('Client connected');
-//   socket.on('disconnect', () => console.log('Client disconnected'));
-// });
-
-// setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
+});
