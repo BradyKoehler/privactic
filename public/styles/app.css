@@ -23,12 +23,17 @@ div#app-conversation-header {
   box-shadow: 0 3px 5px #aaa;
   height: 10%;
   margin: 0 -15px;
+  position: absolute;
+  width: 100%;
 }
 
 div#app-conversation-content {
-  height: 90%;
+  height: 89%;
   padding: 1rem;
   overflow-y: scroll;
+  margin-top: 11%;
+  float: left;
+  width: 100%;
 }
 
 div#app-conversation-content div.message {
@@ -52,4 +57,6 @@ div#app-input {
   height: 13% !important;
   border-top: solid lightgrey 1px;
   padding-top: 1rem;
+  float: left;
+  width: 100%;
 }
