@@ -7,7 +7,7 @@
   <main role="main" class="container">
     <h1>Signup</h1>
 
-    <form class="small-form" action='/signup' method='post'>
+    <form id="signup-form" class="small-form" onsubmit="signup(); return false;">
       <div class="form-group">
         <label for="username">Username</label>
         <input type="text" class="form-control" id="username" name="username" />
@@ -23,8 +23,26 @@
         <input type="password" class="form-control" id="password" name="password" />
       </div>
 
+      <div class="form-group">
+        <label for="key_password">Key Password</label>
+        <input type="password" class="form-control" id="key_password" name="key_password" />
+      </div>
+
       <input type="submit" class="btn btn-primary" value="Submit" />
     </form>
+
+    <p id="keygen-progress" style="width: 100%; overflow: hidden;"></p>
+
+    <form id="submit-form" action="/signup" method="post" style="display: none;">
+      <input type="text" id="username2" name="username" />
+      <input type="text" id="email2" name="email" />
+      <input type="password" id="password2" name="password" />
+      <textarea id="private" name="private"></textarea>
+      <textarea id="public" name="public"></textarea>
+    </form>
   </main>
+
+  <script type="text/javascript" src="/kbpgp"></script>
+  <script type="text/javascript" src="/scripts/signup.js"></script>
 </body>
 </html>

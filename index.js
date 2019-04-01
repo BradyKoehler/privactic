@@ -122,6 +122,10 @@ app.get('/socket.io.js', (req, res) => {
   res.sendFile(path.join(__dirname + '/node_modules/socket.io-client/dist/socket.io.js'));
 });
 
+app.get('/kbpgp', (req, res) => {
+  res.sendFile(path.join(__dirname + '/public/scripts/kbpgp-2.0.8-min.js'));
+});
+
 app.get('/db', async (req, res) => {
   try {
     const client = await pool.connect()
@@ -143,7 +147,11 @@ app.post('/signup', async (req, res) => {
   try {
     const client = await pool.connect();
     const hash = bcrypt.hashSync(req.body.password);
-    const result = await client.query(`INSERT INTO users (username, email, password) VALUES ('${req.body.username}', '${req.body.email}', '${hash}')`)
+    const result = await client.query(`INSERT INTO users (username, email, password) VALUES ('${req.body.username}', '${req.body.email}', '${hash}') RETURNING *`);
+    // console.log(result);
+    const user_id = result.rows[0].id;
+    const key_res = await client.query(`INSERT INTO keys (user_id, public, private) VALUES(${user_id}, '${req.body.public}', '${req.body.private}')`);
+    // console.log(key_res);
     res.redirect('/login');
     client.release();
   } catch (err) {
@@ -172,6 +180,7 @@ app.post('/login', (req, res, next) => {
 
 app.get('/app', (req, res) => {
   if(req.isAuthenticated()) {
+    console.log(req.user.id);
     res.render('app', { SOCKET_URL: process.env.PRIVACTIC_SOCKET_IO_URL });
   } else {
     res.redirect('/')
@@ -183,8 +192,21 @@ app.get('/users', async (req, res) => {
     const client = await pool.connect()
     const result = await client.query(`SELECT id, username FROM users WHERE NOT id = ${req.user.id}`);
     const results = (result) ? result.rows : null;
-    res.json(results);
     client.release();
+    res.json(results);
+  } catch (err) {
+    console.error(err);
+    res.send("Error " + err);
+  }
+});
+
+app.get('/keys', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    const result = await client.query(`SELECT public, private FROM keys WHERE user_id = ${req.user.id}`);
+    const keys = result.rows[0];
+    client.release();
+    res.json(keys);
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
@@ -209,7 +231,20 @@ app.post('/conversations', async (req, res) => {
 app.get('/conversations', async (req, res) => {
   try {
     const client = await pool.connect();
-    const result = await client.query(`SELECT c.id AS conversation_id, u.username FROM conversations c INNER JOIN users u ON (u.id = c.first_id AND NOT u.id = ${req.user.id}) OR (u.id = c.second_id AND NOT u.id = ${req.user.id});`);
+    const result = await client.query(`
+      SELECT
+        c.id as conversation_id,
+        u1.username,
+        k.public
+      FROM users u
+      INNER JOIN conversations c
+        ON u.id = c.first_id OR u.id = c.second_id
+      INNER JOIN users u1
+        ON (u1.id = c.first_id OR u1.id = c.second_id) AND NOT u1.id = u.id
+      INNER JOIN keys k
+        ON k.user_id = u1.id
+      WHERE u.id = ${req.user.id}
+    `);
     const results = (result) ? result.rows : null;
     res.json(results);
     client.release();
@@ -222,7 +257,13 @@ app.get('/conversations', async (req, res) => {
 app.get('/conversation/:id', async (req, res) => {
   try {
     const client = await pool.connect();
-    const result = await client.query(`SELECT id, user_id, content, CASE WHEN user_id = ${req.user.id} THEN TRUE ELSE FALSE END AS me FROM messages WHERE conversation_id = ${req.params.id};`);
+    const result = await client.query(`
+      SELECT
+        id,
+        user_id,
+        CASE WHEN user_id = ${req.user.id} THEN TRUE ELSE FALSE END AS me,
+        CASE WHEN user_id = ${req.user.id} THEN sender_data ELSE recipient_data END AS content
+      FROM messages WHERE conversation_id = ${req.params.id};`);
     const messages = (result) ? result.rows : null;
     res.json(messages);
     client.release();
@@ -235,9 +276,21 @@ app.get('/conversation/:id', async (req, res) => {
 app.post('/messages', async (req, res) => {
   try {
     const client = await pool.connect();
-    const result = await client.query(`INSERT INTO messages (conversation_id, user_id, content) VALUES (${req.body.conversation_id}, ${req.user.id}, '${req.body.content}') RETURNING *`);
+    const result = await client.query(`
+      INSERT INTO messages (conversation_id, user_id, sender_data, recipient_data)
+      VALUES (${req.body.conversation_id}, ${req.user.id}, '${req.body.sender}', '${req.body.recipient}')
+      RETURNING
+        id, user_id, conversation_id,
+        recipient_data as content,
+        sender_data;
+      `);
     const message = (result) ? result.rows[0] : null;
-    res.json(message);
+    res.json({
+      id: message.id,
+      user_id: message.user_id,
+      conversation_id: message.conversation_id,
+      content: message.sender_data
+    });
     client.release();
     const id_res = await client.query(`SELECT socket_id FROM users WHERE id = (
       SELECT
