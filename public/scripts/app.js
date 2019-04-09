@@ -51,8 +51,6 @@ function conversationsLoad() {
       list.append(node);
 
       conversations[i].node = node;
-
-      // list.append(`<a href="#" class="list-group-item list-group-item-action" data-id="${data[i].conversation_id}">${data[i].username}</a>`);
     }
     Privactic.setConversations(conversations);
   });
@@ -60,7 +58,6 @@ function conversationsLoad() {
 
 var messages = $("div#app-conversation-content");
 function addMessage(msg, me = false) {
-  // messages.append(`<div class="message ${msg.me || me ? 'me' : 'you'}"><p>${msg.content}</p></div>`);
   msg.node.setAttribute("class", `message ${msg.me || me ? 'me' : 'you'}`);
   msg.node.innerHTML = msg.decrypted;
   $("#app-conversation-content").scrollTop($("#app-conversation-content").prop("scrollHeight"));
@@ -75,8 +72,6 @@ socket.on('message', function(data) {
       if (err != null) {
         return console.log("Problem: " + err);
       } else {
-        // console.log("decrypted message");
-        // console.log(literals[0].toString());
         data.node = document.createElement("DIV");
         messages.append(data.node);
         data.decrypted = literals[0].toString();
@@ -139,8 +134,8 @@ function messageCreate(data) {
   if (data.sender && data.recipient) {
     $.post('/messages', data, function(data) {
       $("textarea#message-content").val("");
-      // console.log(data);
-      kbpgp.unbox({keyfetch: ring, armored: data.content }, function(err, literals) {
+
+      kbpgp.unbox({ keyfetch: ring, armored: data.content }, function(err, literals) {
         if (err != null) {
           return console.log("Problem: " + err);
         } else {
@@ -148,15 +143,6 @@ function messageCreate(data) {
           messages.append(data.node);
           data.decrypted = literals[0].toString();
           addMessage(data, true);
-          // console.log("decrypted message");
-          // console.log(literals[0].toString());
-          // var ds = km = null;
-          // ds = literals[0].get_data_signer();
-          // if (ds) { km = ds.get_key_manager(); }
-          // if (km) {
-          //   console.log("Signed by PGP fingerprint");
-          //   console.log(km.get_pgp_fingerprint().toString('hex'));
-          // }
         }
       });
     });
@@ -190,15 +176,6 @@ $(function() {
         conversation.messages[i].node = document.createElement("DIV");
         messages.append(conversation.messages[i].node);
         decryptMessage(conversation.messages[i]);
-
-        // var me = conversation.messages[i].me;
-        // kbpgp.unbox({keyfetch: ring, armored: conversation.messages[i].content }, function(err, literals) {
-        //   if (err != null) {
-        //     return console.log("Problem: " + err);
-        //   } else {
-        //     addMessage({content: literals[0].toString(), me: me});
-        //   }
-        // });
       }
     });
   });
