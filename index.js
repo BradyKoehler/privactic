@@ -33,6 +33,7 @@ passport.use(new LocalStrategy(
       const result = await client.query(`SELECT * FROM users WHERE email = '${email}'`);
       const results = (result) ? result.rows : null;
       const user = (results[0]) ? results[0] : null;
+      client.release();
       if (!user) {
         return done(null, false, { message: 'Invalid credentials.\n' });
       }
@@ -40,7 +41,6 @@ passport.use(new LocalStrategy(
         return done(null, false, { message: 'Invalid credentials.\n' });
       }
       return done(null, user);
-      client.release();
     } catch (err) {
       console.log("passport->async->catch");
       console.log(err);
@@ -131,8 +131,8 @@ app.get('/db', async (req, res) => {
     const client = await pool.connect()
     const result = await client.query('SELECT * FROM users');
     const results = { 'results': (result) ? result.rows : null};
-    res.json( results );
     client.release();
+    res.json( results );
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
@@ -152,8 +152,8 @@ app.post('/signup', async (req, res) => {
     const user_id = result.rows[0].id;
     const key_res = await client.query(`INSERT INTO keys (user_id, public, private) VALUES(${user_id}, '${req.body.public}', '${req.body.private}')`);
     // console.log(key_res);
-    res.redirect('/login');
     client.release();
+    res.redirect('/login');
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
@@ -220,8 +220,8 @@ app.post('/conversations', async (req, res) => {
     const conversation = (result) ? result.rows[0] : null;
     const result2 = await client.query(`SELECT c.id AS conversation_id, u.username FROM conversations c JOIN users u ON u.id = c.second_id WHERE c.id = ${conversation.id} LIMIT 1`);
     const results = (result2) ? result2.rows[0] : null;
-    res.json(results);
     client.release();
+    res.json(results);
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
@@ -246,8 +246,8 @@ app.get('/conversations', async (req, res) => {
       WHERE u.id = ${req.user.id}
     `);
     const results = (result) ? result.rows : null;
-    res.json(results);
     client.release();
+    res.json(results);
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
@@ -265,8 +265,8 @@ app.get('/conversation/:id', async (req, res) => {
         CASE WHEN user_id = ${req.user.id} THEN sender_data ELSE recipient_data END AS content
       FROM messages WHERE conversation_id = ${req.params.id};`);
     const messages = (result) ? result.rows : null;
-    res.json(messages);
     client.release();
+    res.json(messages);
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
@@ -285,20 +285,20 @@ app.post('/messages', async (req, res) => {
         sender_data;
       `);
     const message = (result) ? result.rows[0] : null;
-    res.json({
-      id: message.id,
-      user_id: message.user_id,
-      conversation_id: message.conversation_id,
-      content: message.sender_data
-    });
-    client.release();
     const id_res = await client.query(`SELECT socket_id FROM users WHERE id = (
       SELECT
       CASE WHEN first_id = ${req.user.id} THEN second_id ELSE first_id END as id
       FROM conversations WHERE id = ${req.body.conversation_id} LIMIT 1
     ) LIMIT 1`);
     const socket_id = (id_res) ? id_res.rows[0].socket_id : null;
+    client.release();
     io.to(`${socket_id}`).emit("message", message);
+    res.json({
+      id: message.id,
+      user_id: message.user_id,
+      conversation_id: message.conversation_id,
+      content: message.sender_data
+    });
   } catch (err) {
     console.error(err);
     res.send("Error " + err);
@@ -322,6 +322,7 @@ io.on("connection", async function(socket){
   try {
     const client = await pool.connect();
     const result = await client.query(`UPDATE users SET socket_id = '${socket.id}' WHERE id = ${user_id}`);
+    client.release();
   } catch (err) {
     console.error(err);
   }
@@ -330,6 +331,7 @@ io.on("connection", async function(socket){
     try {
       const client = await pool.connect();
       const result = await client.query(`UPDATE users SET socket_id = '' WHERE id = ${user_id}`);
+      client.release();
     } catch (err) {
       console.error(err);
     }
