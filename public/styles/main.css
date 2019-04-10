@@ -1,3 +1,7 @@
 form.small-form {
   max-width: 330px;
 }
+
+form small.text-muted {
+  line-height: 1;
+}

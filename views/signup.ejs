@@ -11,21 +11,27 @@
       <div class="form-group">
         <label for="username">Username</label>
         <input type="text" class="form-control" id="username" name="username" />
+        <small class="text-muted">This is how you will be identified to other users.</small>
       </div>
 
       <div class="form-group">
         <label for="email">Email</label>
         <input type="email" class="form-control" id="email" name="email" />
+        <small class="text-muted">You will use this email to login.</small>
       </div>
 
       <div class="form-group">
         <label for="password">Password</label>
         <input type="password" class="form-control" id="password" name="password" />
+        <small class="text-muted">You will login with this password.</small>
       </div>
 
       <div class="form-group">
-        <label for="key_password">Key Password</label>
+        <label for="key_password">Private Key Password</label>
         <input type="password" class="form-control" id="key_password" name="key_password" />
+        <small class="text-muted">This password will be used to unlock your private key.
+            <br />It will not be stored anywhere. If you forget it, your messages will be
+            unrecoverable.</small>
       </div>
 
       <input type="submit" class="btn btn-primary" value="Submit" />
