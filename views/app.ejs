@@ -37,7 +37,29 @@
     </div>
   </main>
 
-  <!-- Modal -->
+  <!-- Key Password Modal -->
+  <div class="modal fade" id="get-password" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Unlock Private Key</h5>
+        </div>
+        <div class="modal-body">
+          <form id="conversationNewForm" autocomplete="off" autocomplete="false" onsubmit="return false;">
+            <div class="form-group">
+              <label for="user">Password</label>
+              <input class="form-control" type="password" id="key-password" />
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button id="get-key-password" type="button" class="btn btn-success">Unlock</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Conversation Modal -->
   <div class="modal fade" id="conversation-new" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">

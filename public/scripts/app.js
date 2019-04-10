@@ -93,6 +93,47 @@ socket.on('message', function(data) {
 
 let keys;
 
+function enablePrivateKeyForm() {
+  $("#key-password").val("");
+  $("#get-key-password").attr("disabled", false);
+  $("#key-password").attr("disabled", false);
+}
+
+function unlockPrivateKey(password) {
+  var user = Privactic.user;
+
+  user.unlock_pgp({
+    passphrase: password
+  }, function(err) {
+    if (!err) {
+      keys = user;
+      ring.add_key_manager(user);
+
+      console.log("Loaded private key with passphrase");
+
+      conversationsLoad();
+
+      $("div#get-password").modal("hide");
+    } else {
+      alert(err);
+      enablePrivateKeyForm();
+    }
+  });
+}
+
+function getPrivateKeyPassword() {
+  $("div#get-password").modal({ backdrop: 'static', keyboard: false });
+  $("input#key-password").val("");
+}
+
+$("button#get-key-password").click(function() {
+  var password = $("#key-password").val();
+  $(this).attr("disabled", true);
+  $("#key-password").attr("disabled", true);
+
+  unlockPrivateKey(password);
+});
+
 function getKeyData() {
   $.get('/keys', function(data) {
     kbpgp.KeyManager.import_from_armored_pgp({
@@ -105,21 +146,8 @@ function getKeyData() {
           if (!err) {
             // should always be true
             if (user.is_pgp_locked()) {
-
-              var password = prompt("Private Key Password:");
-
-              user.unlock_pgp({
-                passphrase: password
-              }, function(err) {
-                if (!err) {
-                  keys = user;
-                  ring.add_key_manager(user);
-
-                  console.log("Loaded private key with passphrase");
-
-                  conversationsLoad();
-                }
-              });
+              Privactic.user = user;
+              getPrivateKeyPassword();
             } else {
               console.log("Loaded private key w/o passphrase");
             }
