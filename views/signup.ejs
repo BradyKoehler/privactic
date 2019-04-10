@@ -10,34 +10,36 @@
     <form id="signup-form" class="small-form" onsubmit="signup(); return false;">
       <div class="form-group">
         <label for="username">Username</label>
-        <input type="text" class="form-control" id="username" name="username" />
+        <input type="text" class="form-control" id="username" name="username" required />
         <small class="text-muted">This is how you will be identified to other users.</small>
       </div>
 
       <div class="form-group">
         <label for="email">Email</label>
-        <input type="email" class="form-control" id="email" name="email" />
+        <input type="email" class="form-control" id="email" name="email" required />
         <small class="text-muted">You will use this email to login.</small>
       </div>
 
       <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" class="form-control" id="password" name="password" />
+        <input type="password" class="form-control" id="password" name="password" value="password" required />
         <small class="text-muted">You will login with this password.</small>
       </div>
 
       <div class="form-group">
         <label for="key_password">Private Key Password</label>
-        <input type="password" class="form-control" id="key_password" name="key_password" />
+        <input type="password" class="form-control" id="key_password" name="key_password" value="password" required />
         <small class="text-muted">This password will be used to unlock your private key.
             <br />It will not be stored anywhere. If you forget it, your messages will be
             unrecoverable.</small>
       </div>
 
-      <input type="submit" class="btn btn-primary" value="Submit" />
+      <input id="signup-form-submit" type="submit" class="btn btn-primary" value="Submit" />
     </form>
 
-    <p id="keygen-progress" style="width: 100%; overflow: hidden;"></p>
+    <br />
+
+    <div id="keygen-progress"></div>
 
     <form id="submit-form" action="/signup" method="post" style="display: none;">
       <input type="text" id="username2" name="username" />

@@ -160,6 +160,30 @@ app.post('/signup', async (req, res) => {
   }
 });
 
+app.get('/check/username', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    const result = await client.query(`SELECT COUNT(*) FROM users WHERE username = '${req.query.username}'`);
+    client.release();
+    res.json({ taken: result.rows[0].count != 0 });
+  } catch (err) {
+    console.error(err);
+    res.send("Error " + err);
+  }
+});
+
+app.get('/check/email', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    const result = await client.query(`SELECT COUNT(*) FROM users WHERE email = '${req.query.email}'`);
+    client.release();
+    res.json({ taken: result.rows[0].count != 0 });
+  } catch (err) {
+    console.error(err);
+    res.send("Error " + err);
+  }
+});
+
 // create the login get and post routes
 app.get('/login', (req, res) => {
   res.render('login');

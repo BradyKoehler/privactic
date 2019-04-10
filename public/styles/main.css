@@ -5,3 +5,16 @@ form.small-form {
 form small.text-muted {
   line-height: 1;
 }
+
+div#keygen-progress {
+  width: 100%;
+}
+
+table.keygen-progress {
+  font-family: monospace;
+  text-align: right;
+}
+
+table.keygen-progress tr:first-of-type td, table.keygen-progress tr:last-of-type td {
+  text-align: left;
+}
