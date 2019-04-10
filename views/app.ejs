@@ -7,7 +7,7 @@
   <meta name="socket_io_url" content="<%- SOCKET_URL -%>" />
 </head>
 <body>
-  <%- include partials/header -%>
+  <%- include('partials/header', { signed_in: true }) -%>
   <main role="main" class="container-fluid h-100">
     <div class="row h-100">
       <div id="app-sidebar" class="col-3 h-100">

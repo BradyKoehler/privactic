@@ -202,6 +202,11 @@ app.post('/login', (req, res, next) => {
   })(req, res, next);
 });
 
+app.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
+
 app.get('/app', (req, res) => {
   if(req.isAuthenticated()) {
     console.log(req.user.id);
